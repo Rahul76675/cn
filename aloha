@@ -1,0 +1,88 @@
+clc; clear; close all;
+
+% Simulation Parameters
+numNodes = 20;           % Number of nodes in the network
+numSlots = 1000;         % Total number of time slots
+numTrials = 100;         % Number of trials for averaging results
+transmissionProb = 0.1;  % Probability of transmission in a given time slot
+
+% Initialize variables to store results
+alohaThroughput = zeros(1, numTrials);
+alohaCollisions = zeros(1, numTrials);
+slottedThroughput = zeros(1, numTrials);
+slottedCollisions = zeros(1, numTrials);
+
+% Run simulation for multiple trials
+for trial = 1:numTrials
+    [alohaThroughput(trial), alohaCollisions(trial)] = runAloha(numNodes, numSlots, transmissionProb);
+    [slottedThroughput(trial), slottedCollisions(trial)] = runSlottedAloha(numNodes, numSlots, transmissionProb);
+end
+
+% Compute Average Results
+avgAlohaThroughput = mean(alohaThroughput);
+avgAlohaCollisions = mean(alohaCollisions);
+avgSlottedThroughput = mean(slottedThroughput);
+avgSlottedCollisions = mean(slottedCollisions);
+
+% Display Results
+disp(['Aloha - Avg Throughput: ', num2str(avgAlohaThroughput)]);
+disp(['Aloha - Avg Collision Rate: ', num2str(avgAlohaCollisions)]);
+disp(['Slotted Aloha - Avg Throughput: ', num2str(avgSlottedThroughput)]);
+disp(['Slotted Aloha - Avg Collision Rate: ', num2str(avgSlottedCollisions)]);
+
+% Plot Results
+figure;
+bar([avgAlohaThroughput, avgSlottedThroughput]);
+set(gca, 'XTickLabel', {'ALOHA', 'Slotted ALOHA'});
+ylabel('Throughput');
+title('Comparison of Throughput');
+
+figure;
+bar([avgAlohaCollisions, avgSlottedCollisions]);
+set(gca, 'XTickLabel', {'ALOHA', 'Slotted ALOHA'});
+ylabel('Collision Rate');
+title('Comparison of Collision Rate');
+
+% -----------------------------------------
+% Function to Simulate Pure ALOHA
+% -----------------------------------------
+function [throughput, collisionRate] = runAloha(numNodes, numSlots, transmissionProb)
+    successfulTransmissions = 0;
+    collisions = 0;
+
+    for t = 1:numSlots
+        transmittingNodes = rand(1, numNodes) < transmissionProb; % Random packet transmissions
+        numTransmissions = sum(transmittingNodes);
+        
+        if numTransmissions == 1
+            successfulTransmissions = successfulTransmissions + 1; % Success
+        elseif numTransmissions > 1
+            collisions = collisions + 1; % Collision
+        end
+    end
+
+    throughput = successfulTransmissions / numSlots;
+    collisionRate = collisions / numSlots;
+end
+
+% -----------------------------------------
+% Function to Simulate Slotted ALOHA
+% -----------------------------------------
+function [throughput, collisionRate] = runSlottedAloha(numNodes, numSlots, transmissionProb)
+    successfulTransmissions = 0;
+    collisions = 0;
+
+    for t = 1:numSlots
+        transmittingNodes = rand(1, numNodes) < transmissionProb; % Random transmissions at slot start
+        numTransmissions = sum(transmittingNodes);
+        
+        if numTransmissions == 1
+            successfulTransmissions = successfulTransmissions + 1; % Success
+        elseif numTransmissions > 1
+            collisions = collisions + 1; % Collision
+        end
+    end
+
+    throughput = successfulTransmissions / numSlots;
+    collisionRate = collisions / numSlots;
+end
